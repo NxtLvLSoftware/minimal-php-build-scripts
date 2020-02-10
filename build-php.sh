@@ -152,12 +152,13 @@ fi
 [ -z "$CONFIGURE_FLAGS" ] && CONFIGURE_FLAGS="";
 
 if [ "$mtune" != "none" ]; then
+	echo "$CC -march=$march -mtune=$mtune $CFLAGS -o test test.c" >>"$DIR/install.log"
 	$CC -march=$march -mtune=$mtune $CFLAGS -o test test.c >> "$DIR/install.log" 2>&1
 	if [ $? -eq 0 ]; then
 		CFLAGS="-march=$march -mtune=$mtune -fno-gcse $CFLAGS"
 	fi
 else
-	echo "$CC -march=$march $CFLAGS -o test test.c"
+	echo "$CC -march=$march $CFLAGS -o test test.c" >> "$DIR/install.log"
 	$CC -march=$march $CFLAGS -o test test.c >> "$DIR/install.log" 2>&1
 	if [ $? -eq 0 ]; then
 		CFLAGS="-march=$march -fno-gcse $CFLAGS"
