@@ -132,6 +132,12 @@ elif [ -z "$CFLAGS" ]; then
 	fi
 fi
 
+echo "#include <stdio.h>" > test.c
+echo "int main(void){" >> test.c
+echo "printf(\"Hello world\n\");" >> test.c
+echo "return 0;" >> test.c
+echo "}" >> test.c
+
 type $CC >> "$DIR/install.log" 2>&1 || { write_error "Please install \"$CC\""; exit 1; }
 
 [ -z "$THREADS" ] && THREADS=1;
@@ -144,6 +150,20 @@ if [ "$DO_STATIC" == "no" ]; then
 fi
 
 [ -z "$CONFIGURE_FLAGS" ] && CONFIGURE_FLAGS="";
+
+if [ "$mtune" != "none" ]; then
+	echo "$CC -march=$march -mtune=$mtune $CFLAGS -o test test.c" >>"$DIR/install.log"
+	$CC -march=$march -mtune=$mtune $CFLAGS -o test test.c >> "$DIR/install.log" 2>&1
+	if [ $? -eq 0 ]; then
+		CFLAGS="-march=$march -mtune=$mtune -fno-gcse $CFLAGS"
+	fi
+else
+	echo "$CC -march=$march $CFLAGS -o test test.c" >> "$DIR/install.log"
+	$CC -march=$march $CFLAGS -o test test.c >> "$DIR/install.log" 2>&1
+	if [ $? -eq 0 ]; then
+		CFLAGS="-march=$march -fno-gcse $CFLAGS"
+	fi
+fi
 
 rm test.* >> "$DIR/install.log" 2>&1
 rm test >> "$DIR/install.log" 2>&1
