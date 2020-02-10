@@ -199,7 +199,7 @@ fi
 echo " done!"
 PHP_OPTIMIZATION="--disable-inline-optimization "
 
-echo "[PHP] checking..."
+echo -n "[PHP] checking..."
 cd php
 rm -f ./aclocal.m4 >> "$DIR/install.log" 2>&1
 rm -rf ./autom4te.cache/ >> "$DIR/install.log" 2>&1
