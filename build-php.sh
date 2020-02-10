@@ -157,6 +157,7 @@ if [ "$mtune" != "none" ]; then
 		CFLAGS="-march=$march -mtune=$mtune -fno-gcse $CFLAGS"
 	fi
 else
+	echo "$CC -march=$march $CFLAGS -o test test.c"
 	$CC -march=$march $CFLAGS -o test test.c >> "$DIR/install.log" 2>&1
 	if [ $? -eq 0 ]; then
 		CFLAGS="-march=$march -fno-gcse $CFLAGS"
