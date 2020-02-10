@@ -56,10 +56,10 @@ else
 	fi
 fi
 
-export CC="gcc"
-export CXX="g++"
-#export AR="gcc-ar"
-export RANLIB=ranlib
+[ -z "$CC" ] && export CC="gcc"
+[ -z "$CXX" ] && export CXX="g++"
+#[ -z "$AR" ] && export AR="gcc-ar"
+[ -z "$RANLIB" ] && export RANLIB=ranlib
 
 COMPILE_TARGET=""
 COMPILE_FANCY="no"
