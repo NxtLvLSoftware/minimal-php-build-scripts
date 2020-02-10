@@ -98,8 +98,9 @@ while getopts "::t:j:snz" OPTION; do
 done
 
 if [[ "$COMPILE_TARGET" == "" ]] && [[ "$(uname -s)" == "Darwin" ]]; then
-		COMPILE_TARGET="mac"
+	COMPILE_TARGET="mac"
 fi
+
 if [[ "$COMPILE_TARGET" == "linux" ]] || [[ "$COMPILE_TARGET" == "linux64" ]]; then
 	[ -z "$march" ] && march=x86-64;
 	[ -z "$mtune" ] && mtune=nocona;
@@ -118,15 +119,15 @@ elif [[ "$COMPILE_TARGET" == "mac" ]] || [[ "$COMPILE_TARGET" == "mac64" ]]; the
 	CFLAGS="$CFLAGS -Qunused-arguments -Wno-error=unused-command-line-argument"
 	echo "[INFO] Compiling for Intel MacOS x86_64"
 #TODO: add aarch64 platforms (ios, android, rpi)
-elif [ -z "$CFLAGS" ]; then
-	if [ `getconf LONG_BIT` == "64" ]; then
+elif [[ -z "$CFLAGS" ]]; then
+	if [[ `getconf LONG_BIT` == "64" ]]; then
 		echo "[INFO] Compiling for current machine using 64-bit"
-		if [ "$(uname -m)" != "aarch64" ]; then
+		if [[ "$(uname -m)" != "aarch64" ]]; then
 			CFLAGS="-m64 $CFLAGS"
 		fi
 	else
 		echo "[INFO] Compiling for current machine using 32-bit"
-		if [ "$(uname -m)" != "aarch32" ]; then
+		if [[ "$(uname -m)" != "aarch32" ]]; then
 			CFLAGS="-m32 $CFLAGS"
 		fi
 	fi
@@ -138,20 +139,20 @@ echo "printf(\"Hello world\n\");" >> test.c
 echo "return 0;" >> test.c
 echo "}" >> test.c
 
-type $CC >> "$DIR/install.log" 2>&1 || { write_error "Please install \"$CC\""; exit 1; }
+type ${CC} >> "$DIR/install.log" 2>&1 || { write_error "Please install \"$CC\""; exit 1; }
 
-[ -z "$THREADS" ] && THREADS=1;
-[ -z "$march" ] && march=native;
-[ -z "$mtune" ] && mtune=native;
-[ -z "$CFLAGS" ] && CFLAGS="";
+[[ -z "$THREADS" ]] && THREADS=1;
+[[ -z "$march" ]] && march=native;
+[[ -z "$mtune" ]] && mtune=native;
+[[ -z "$CFLAGS" ]] && CFLAGS="";
 
-if [ "$DO_STATIC" == "no" ]; then
-	[ -z "$LDFLAGS" ] && LDFLAGS="-Wl,-rpath='\$\$ORIGIN/../lib' -Wl,-rpath-link='\$\$ORIGIN/../lib'";
+if [[ "$DO_STATIC" == "no" ]]; then
+	[[ -z "$LDFLAGS" ]] && LDFLAGS="-Wl,-rpath='\$\$ORIGIN/../lib' -Wl,-rpath-link='\$\$ORIGIN/../lib'";
 fi
 
-[ -z "$CONFIGURE_FLAGS" ] && CONFIGURE_FLAGS="";
+[[ -z "$CONFIGURE_FLAGS" ]] && CONFIGURE_FLAGS="";
 
-if [ "$mtune" != "none" ]; then
+if [[ "$mtune" != "none" ]]; then
 	echo "$CC -march=$march -mtune=$mtune $CFLAGS -o test test.c" >>"$DIR/install.log"
 	$CC -march=$march -mtune=$mtune $CFLAGS -o test test.c >> "$DIR/install.log" 2>&1
 	if [ $? -eq 0 ]; then
@@ -160,7 +161,7 @@ if [ "$mtune" != "none" ]; then
 else
 	echo "$CC -march=$march $CFLAGS -o test test.c" >> "$DIR/install.log"
 	$CC -march=$march $CFLAGS -o test test.c >> "$DIR/install.log" 2>&1
-	if [ $? -eq 0 ]; then
+	if [[ $? -eq 0 ]]; then
 		CFLAGS="-march=$march -fno-gcse $CFLAGS"
 	fi
 fi
@@ -189,10 +190,10 @@ echo -n "[PHP] downloading $PHP_VERSION..."
 
 if [[ "$PHP_IS_BETA" == "yes" ]]; then
 	download_file "https://github.com/php/php-src/archive/php-$PHP_VERSION.tar.gz" | tar -zx >> "$DIR/install.log" 2>&1
-	mv php-src-php-$PHP_VERSION php
+	mv php-src-php-${PHP_VERSION} php
 else
 	download_file "http://php.net/get/php-$PHP_VERSION.tar.gz/from/this/mirror" | tar -zx >> "$DIR/install.log" 2>&1
-	mv php-$PHP_VERSION php
+	mv php-${PHP_VERSION} php
 fi
 
 echo " done!"
@@ -206,27 +207,22 @@ rm -f ./configure >> "$DIR/install.log" 2>&1
 
 ./buildconf --force >> "$DIR/install.log" 2>&1
 
-if [ "$DO_STATIC" == "yes" ]; then
+if [[ "$DO_STATIC" == "yes" ]]; then
 	export LIBS="$LIBS -ldl"
 fi
 
-if [[ "$(uname -s)" == "Darwin" ]] && [[ "$IS_CROSSCOMPILE" != "yes" ]]; then
-	sed -i=".backup" 's/flock_type=unknown/flock_type=bsd/' ./configure
-	export EXTRA_CFLAGS=-lresolv
-fi
-
-RANLIB=$RANLIB CFLAGS="$CFLAGS $FLAGS_LTO" CXXFLAGS="$CXXFLAGS $FLAGS_LTO" LDFLAGS="$LDFLAGS $FLAGS_LTO" ./configure $PHP_OPTIMIZATION --prefix="$PHP_INSTALL_DIR" \
+RANLIB=${RANLIB} CFLAGS=${CFLAGS} CXXFLAGS=${CXXFLAGS} LDFLAGS=${LDFLAGS} ./configure ${PHP_OPTIMIZATION} --prefix="$PHP_INSTALL_DIR" \
 --disable-all \
 --disable-cgi \
 --enable-debug \
-$HAS_ZTS \
-$CONFIGURE_FLAGS >> "$DIR/install.log" 2>&1
+${HAS_ZTS} \
+${CONFIGURE_FLAGS} >> "$DIR/install.log" 2>&1
 
 sed -i=".backup" 's/PHP_BINARIES. pharcmd$/PHP_BINARIES)/g' Makefile
 sed -i=".backup" 's/install-programs install-pharcmd$/install-programs/g' Makefile
 
 echo -n " compiling..."
-make -j $THREADS >> "$DIR/install.log" 2>&1
+make -j ${THREADS} >> "$DIR/install.log" 2>&1
 echo -n " installing..."
 make install >> "$DIR/install.log" 2>&1
 
