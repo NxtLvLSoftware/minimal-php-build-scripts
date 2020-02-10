@@ -267,7 +267,7 @@ echo " done!"
 
 cd "$DIR"
 if [ "$DO_CLEANUP" == "yes" ]; then
-	wite_info "Cleaning up..."
+	write_info "Cleaning up..."
 	rm -r -f install_data/ >> "$DIR/install.log" 2>&1
 	rm -f php/bin/curl* >> "$DIR/install.log" 2>&1
 	rm -f php/bin/curl-config* >> "$DIR/install.log" 2>&1
