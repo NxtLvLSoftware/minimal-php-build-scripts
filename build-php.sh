@@ -99,44 +99,38 @@ done
 
 if [[ "$COMPILE_TARGET" == "" ]] && [[ "$(uname -s)" == "Darwin" ]]; then
 		COMPILE_TARGET="mac"
+fi
+if [[ "$COMPILE_TARGET" == "linux" ]] || [[ "$COMPILE_TARGET" == "linux64" ]]; then
+	[ -z "$march" ] && march=x86-64;
+	[ -z "$mtune" ] && mtune=nocona;
+	CFLAGS="$CFLAGS -m64"
+	echo "[INFO] Compiling for Linux x86_64"
+elif [[ "$COMPILE_TARGET" == "mac" ]] || [[ "$COMPILE_TARGET" == "mac64" ]]; then
+	[ -z "$march" ] && march=core2;
+	[ -z "$mtune" ] && mtune=generic;
+	[ -z "$MACOSX_DEPLOYMENT_TARGET" ] && export MACOSX_DEPLOYMENT_TARGET=10.9;
+	CFLAGS="$CFLAGS -m64 -arch x86_64 -fomit-frame-pointer -mmacosx-version-min=$MACOSX_DEPLOYMENT_TARGET"
+	LDFLAGS="$LDFLAGS -mmacosx-version-min=$MACOSX_DEPLOYMENT_TARGET"
+	if [ "$DO_STATIC" == "no" ]; then
+		LDFLAGS="$LDFLAGS -Wl,-rpath,@loader_path/../lib";
+		export DYLD_LIBRARY_PATH="@loader_path/../lib"
 	fi
-	if [[ "$COMPILE_TARGET" == "linux" ]] || [[ "$COMPILE_TARGET" == "linux64" ]]; then
-		[ -z "$march" ] && march=x86-64;
-		[ -z "$mtune" ] && mtune=nocona;
-		CFLAGS="$CFLAGS -m64"
-		echo "[INFO] Compiling for Linux x86_64"
-	elif [[ "$COMPILE_TARGET" == "mac" ]] || [[ "$COMPILE_TARGET" == "mac64" ]]; then
-		[ -z "$march" ] && march=core2;
-		[ -z "$mtune" ] && mtune=generic;
-		[ -z "$MACOSX_DEPLOYMENT_TARGET" ] && export MACOSX_DEPLOYMENT_TARGET=10.9;
-		CFLAGS="$CFLAGS -m64 -arch x86_64 -fomit-frame-pointer -mmacosx-version-min=$MACOSX_DEPLOYMENT_TARGET"
-		LDFLAGS="$LDFLAGS -mmacosx-version-min=$MACOSX_DEPLOYMENT_TARGET"
-		if [ "$DO_STATIC" == "no" ]; then
-			LDFLAGS="$LDFLAGS -Wl,-rpath,@loader_path/../lib";
-			export DYLD_LIBRARY_PATH="@loader_path/../lib"
+	CFLAGS="$CFLAGS -Qunused-arguments -Wno-error=unused-command-line-argument"
+	echo "[INFO] Compiling for Intel MacOS x86_64"
+#TODO: add aarch64 platforms (ios, android, rpi)
+elif [ -z "$CFLAGS" ]; then
+	if [ `getconf LONG_BIT` == "64" ]; then
+		echo "[INFO] Compiling for current machine using 64-bit"
+		if [ "$(uname -m)" != "aarch64" ]; then
+			CFLAGS="-m64 $CFLAGS"
 		fi
-		CFLAGS="$CFLAGS -Qunused-arguments -Wno-error=unused-command-line-argument"
-		echo "[INFO] Compiling for Intel MacOS x86_64"
-	#TODO: add aarch64 platforms (ios, android, rpi)
-	elif [ -z "$CFLAGS" ]; then
-		if [ `getconf LONG_BIT` == "64" ]; then
-			echo "[INFO] Compiling for current machine using 64-bit"
-			if [ "$(uname -m)" != "aarch64" ]; then
-				CFLAGS="-m64 $CFLAGS"
-			fi
-		else
-			echo "[INFO] Compiling for current machine using 32-bit"
-			if [ "$(uname -m)" != "aarch32" ]; then
-				CFLAGS="-m32 $CFLAGS"
-			fi
+	else
+		echo "[INFO] Compiling for current machine using 32-bit"
+		if [ "$(uname -m)" != "aarch32" ]; then
+			CFLAGS="-m32 $CFLAGS"
 		fi
 	fi
-
-echo "#include <stdio.h>" > test.c
-echo "int main(void){" >> test.c
-echo "printf(\"Hello world\n\");" >> test.c
-echo "return 0;" >> test.c
-echo "}" >> test.c
+fi
 
 type $CC >> "$DIR/install.log" 2>&1 || { write_error "Please install \"$CC\""; exit 1; }
 
@@ -150,20 +144,6 @@ if [ "$DO_STATIC" == "no" ]; then
 fi
 
 [ -z "$CONFIGURE_FLAGS" ] && CONFIGURE_FLAGS="";
-
-if [ "$mtune" != "none" ]; then
-	echo "$CC -march=$march -mtune=$mtune $CFLAGS -o test test.c" >>"$DIR/install.log"
-	$CC -march=$march -mtune=$mtune $CFLAGS -o test test.c >> "$DIR/install.log" 2>&1
-	if [ $? -eq 0 ]; then
-		CFLAGS="-march=$march -mtune=$mtune -fno-gcse $CFLAGS"
-	fi
-else
-	echo "$CC -march=$march $CFLAGS -o test test.c" >> "$DIR/install.log"
-	$CC -march=$march $CFLAGS -o test test.c >> "$DIR/install.log" 2>&1
-	if [ $? -eq 0 ]; then
-		CFLAGS="-march=$march -fno-gcse $CFLAGS"
-	fi
-fi
 
 rm test.* >> "$DIR/install.log" 2>&1
 rm test >> "$DIR/install.log" 2>&1
