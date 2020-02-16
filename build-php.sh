@@ -216,7 +216,6 @@ RANLIB=${RANLIB} CFLAGS=${CFLAGS} CXXFLAGS=${CXXFLAGS} LDFLAGS=${LDFLAGS} ./conf
 --disable-cgi \
 --enable-debug \
 ${HAS_ZTS} \
---with-config-file-scan-dir \
 ${CONFIGURE_FLAGS} >> "$DIR/install.log" 2>&1
 
 sed -i=".backup" 's/PHP_BINARIES. pharcmd$/PHP_BINARIES)/g' Makefile
